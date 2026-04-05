@@ -2,14 +2,19 @@ import { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import './index.css';
 
+// ✅ YOUR BACKEND URL ADDED
+const API_URL = "https://ncert-rag-pipeline.onrender.com";
+
 function App() {
-  const [currentPage, setCurrentPage] = useState('home'); // 'home' | 'chat'
-  const [messages, setMessages] = useState([{ role: 'bot', text: 'Hello! I am your NCERT Doubt Solver. Ask me anything from Grades 5-10!' }]);
+  const [currentPage, setCurrentPage] = useState('home');
+  const [messages, setMessages] = useState([
+    { role: 'bot', text: 'Hello! I am your NCERT Doubt Solver. Ask me anything from Grades 5-10!' }
+  ]);
   const [input, setInput] = useState('');
   const [grade, setGrade] = useState('All');
   const [subject, setSubject] = useState('All');
   const [loading, setLoading] = useState(false);
-  
+
   const chatEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -32,18 +37,24 @@ function App() {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:5000/api/chat', {
+      const response = await axios.post(`${API_URL}/api/chat`, {
         query: userMessage.text,
         grade,
         subject,
-        history: messages.filter(m => m.role !== 'bot' || m.text !== 'Hello! I am your NCERT Doubt Solver. Ask me anything from Grades 5-10!')
+        history: messages.filter(
+          m => m.role !== 'bot' || m.text !== 'Hello! I am your NCERT Doubt Solver. Ask me anything from Grades 5-10!'
+        )
       });
 
       const botMessage = { role: 'bot', text: response.data.response };
       setMessages([...currentMessages, botMessage]);
+
     } catch (error) {
       console.error(error);
-      setMessages([...currentMessages, { role: 'bot', text: 'Sorry, I encountered an error. Please try again.' }]);
+      setMessages([
+        ...currentMessages,
+        { role: 'bot', text: '❌ Error: Unable to connect to server. Please try again.' }
+      ]);
     }
 
     setLoading(false);
@@ -52,7 +63,7 @@ function App() {
   const handleFeedback = async (messageIndex, score) => {
     const message = messages[messageIndex];
     if (message.role !== 'bot') return;
-    
+
     let query = '';
     for (let i = messageIndex - 1; i >= 0; i--) {
       if (messages[i].role === 'user') {
@@ -62,14 +73,20 @@ function App() {
     }
 
     try {
-      await axios.post('http://localhost:5000/api/feedback', {
+      await axios.post(`${API_URL}/api/feedback`, {
         query,
         response: message.text,
         grade,
         subject,
         score
       });
-      alert(score > 0 ? 'Thanks for the positive feedback!' : 'Thanks for your feedback, we will improve.');
+
+      alert(
+        score > 0
+          ? 'Thanks for the positive feedback!'
+          : 'Thanks for your feedback, we will improve.'
+      );
+
     } catch (error) {
       console.error("Feedback error", error);
     }
@@ -83,9 +100,9 @@ function App() {
         </h1>
         <div className="nav-links">
           {currentPage === 'chat' ? (
-             <button onClick={() => setCurrentPage('home')}>Back to Home</button>
+            <button onClick={() => setCurrentPage('home')}>Back to Home</button>
           ) : (
-             <button onClick={() => setCurrentPage('chat')}>📝 Open Chat</button>
+            <button onClick={() => setCurrentPage('chat')}>📝 Open Chat</button>
           )}
         </div>
       </div>
@@ -95,11 +112,11 @@ function App() {
           <img src="/hero.png" alt="Student using AI" className="hero-image" />
           <h2>Your AI Study Companion</h2>
           <p>
-            Master the NCERT curriculum with an intelligent tutor available 24/7. 
-            Ask questions in multiple languages and get highly accurate, verified answers 
+            Master the NCERT curriculum with an intelligent tutor available 24/7.
+            Ask questions in multiple languages and get highly accurate answers
             tailored to your grade and subject.
           </p>
-          
+
           <button className="start-btn" onClick={() => setCurrentPage('chat')}>
             Start Learning Now →
           </button>
@@ -126,8 +143,11 @@ function App() {
           <div className="filters">
             <select value={grade} onChange={(e) => setGrade(e.target.value)}>
               <option value="All">All Grades</option>
-              {[5, 6, 7, 8, 9, 10].map(g => <option key={g} value={g}>Class {g}</option>)}
+              {[5, 6, 7, 8, 9, 10].map(g => (
+                <option key={g} value={g}>Class {g}</option>
+              ))}
             </select>
+
             <select value={subject} onChange={(e) => setSubject(e.target.value)}>
               <option value="All">All Subjects</option>
               <option value="math">Mathematics</option>
@@ -142,6 +162,7 @@ function App() {
             {messages.map((msg, index) => (
               <div key={index} className={`message ${msg.role}`}>
                 <div>{msg.text}</div>
+
                 {msg.role === 'bot' && index > 0 && (
                   <div className="feedback">
                     <button onClick={() => handleFeedback(index, 1)}>👍 Helpful</button>
@@ -150,19 +171,21 @@ function App() {
                 )}
               </div>
             ))}
+
             {loading && <div className="message bot">Thinking... 🧠</div>}
             <div ref={chatEndRef} />
           </div>
 
           <div className="input-area">
-            <input 
-              type="text" 
-              placeholder="Ask your doubt here... (e.g. What is photosynthesis?)" 
+            <input
+              type="text"
+              placeholder="Ask your doubt here..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
               disabled={loading}
             />
+
             <button onClick={handleSend} disabled={loading || !input.trim()}>
               Send
             </button>
