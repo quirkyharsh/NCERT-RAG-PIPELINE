@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import './index.css';
 
-// ✅ YOUR BACKEND URL ADDED
+// ✅ YOUR BACKEND URL
 const API_URL = "https://ncert-rag-pipeline.onrender.com";
 
 function App() {
@@ -37,24 +37,36 @@ function App() {
     setLoading(true);
 
     try {
-      const response = await axios.post(`${API_URL}/api/chat`, {
-        query: userMessage.text,
-        grade,
-        subject,
-        history: messages.filter(
-          m => m.role !== 'bot' || m.text !== 'Hello! I am your NCERT Doubt Solver. Ask me anything from Grades 5-10!'
-        )
-      });
+      const response = await axios.post(
+        `${API_URL}/api/chat`,
+        {
+          query: userMessage.text,
+          grade,
+          subject,
+          history: messages.filter(
+            m => m.role !== 'bot' || m.text !== 'Hello! I am your NCERT Doubt Solver. Ask me anything from Grades 5-10!'
+          )
+        },
+        {
+          timeout: 60000 // 🔥 FIX: wait for Render backend
+        }
+      );
 
       const botMessage = { role: 'bot', text: response.data.response };
       setMessages([...currentMessages, botMessage]);
 
     } catch (error) {
-      console.error(error);
-      setMessages([
-        ...currentMessages,
-        { role: 'bot', text: '❌ Error: Unable to connect to server. Please try again.' }
-      ]);
+      console.error("Chat API Error:", error);
+
+      let errorMessage = "❌ Unable to reach server. Please try again.";
+
+      if (error.code === "ECONNABORTED") {
+        errorMessage = "⏳ Server is waking up... please try again in a few seconds.";
+      } else if (error.response) {
+        errorMessage = "⚠️ Server error. Please try again later.";
+      }
+
+      setMessages([...currentMessages, { role: 'bot', text: errorMessage }]);
     }
 
     setLoading(false);
@@ -73,13 +85,19 @@ function App() {
     }
 
     try {
-      await axios.post(`${API_URL}/api/feedback`, {
-        query,
-        response: message.text,
-        grade,
-        subject,
-        score
-      });
+      await axios.post(
+        `${API_URL}/api/feedback`,
+        {
+          query,
+          response: message.text,
+          grade,
+          subject,
+          score
+        },
+        {
+          timeout: 60000
+        }
+      );
 
       alert(
         score > 0
@@ -88,7 +106,7 @@ function App() {
       );
 
     } catch (error) {
-      console.error("Feedback error", error);
+      console.error("Feedback error:", error);
     }
   };
 
