@@ -1,0 +1,23 @@
+[
+  {
+    "id": 1,
+    "grade": "10",
+    "subject": "Science",
+    "chapter": "Light - Reflection and Refraction",
+    "text": "Light seems to travel in straight lines. Mirrors and lenses form images of objects. A plane mirror always forms a virtual and erect image."
+  },
+  {
+    "id": 2,
+    "grade": "10",
+    "subject": "Math",
+    "chapter": "Polynomials",
+    "text": "A polynomial of degree 1 is called a linear polynomial. A polynomial of degree 2 is called a quadratic polynomial."
+  },
+  {
+    "id": 3,
+    "grade": "5",
+    "subject": "Science",
+    "chapter": "Super Senses",
+    "text": "Animals also have different senses. They can see, hear, taste, smell and feel. Some animals can see their prey from far away, some can hear even the faintest sound."
+  }
+]
